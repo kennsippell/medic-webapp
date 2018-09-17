@@ -35,7 +35,7 @@ require('./services');
 require('./controllers');
 require('./filters');
 require('./directives');
-require('./enketo/main');
+var initializeEnketo = require('./enketo/main');
 
 var bootstrapper = require('./bootstrapper');
 var router = require('./router');
@@ -155,6 +155,8 @@ _.templateSettings = {
       angular.bootstrap(document, ['inboxApp'], {
         strictDi: true,
       });
+
+      initializeEnketo();
     });
   });
 })();
