@@ -1,0 +1,19 @@
+{
+  "name": "Medic Mobile",
+  "description": "Allows unlimited persistent storage for Medic Mobile domains.",
+  "version": "0.1",
+  "manifest_version": 2,
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:5988/*"
+      ],
+      "js": ["content-script.js"]
+    }
+  ],
+  "permissions": ["storage", "unlimitedStorage", "http://localhost:5988/"]
+}
