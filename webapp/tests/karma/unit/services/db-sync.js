@@ -1,5 +1,4 @@
 describe('DBSync service', () => {
-
   'use strict';
 
   const { expect } = chai;
@@ -36,18 +35,32 @@ describe('DBSync service', () => {
     sync = sinon.stub();
     Auth = sinon.stub();
 
+    /*
+    Injecting the $q object requires the use of digest() throughout the tests which is gross
+    Using the defined Q object directly isn't a perfect match because of $q(x) is equivalent to Q.promise(x) while Q(x) is equivalent to $q.resolve(x)
+    */
+    $q = func => Q.promise(func);
+    $q.all = Q.all;
+    $q.resolve = Q.resolve;
+    $q.when = Q.when;
+    $q.defer = Q.defer;
+    $q.reject = Q.reject;
+
     module('inboxApp');
     module($provide => {
-      $provide.factory('DB', KarmaUtils.mockDB({
-        replicate: { to: to, from: from },
-        allDocs: allDocs,
-        sync: sync
-      }));
-      $provide.value('$q', Q); // bypass $q so we don't have to digest
+      $provide.factory(
+        'DB',
+        KarmaUtils.mockDB({
+          replicate: { to: to, from: from },
+          allDocs: allDocs,
+          sync: sync,
+        })
+      );
+      $provide.value('$q', $q); // bypass $q so we don't have to digest
       $provide.value('Session', {
         isOnlineOnly: isOnlineOnly,
-        userCtx: userCtx
-      } );
+        userCtx: userCtx,
+      });
       $provide.value('Auth', Auth);
     });
     inject((_DBSync_, _$interval_) => {
@@ -57,7 +70,17 @@ describe('DBSync service', () => {
   });
 
   afterEach(() => {
-    KarmaUtils.restore(to, from, query, allDocs, isOnlineOnly, userCtx, sync, Auth);
+    KarmaUtils.restore(
+      to,
+      from,
+      query,
+      isOnlineOnly,
+      allDocs,
+      userCtx,
+      sync,
+      Auth,
+      $q
+    );
   });
 
   describe('sync', () => {
@@ -221,7 +244,6 @@ describe('DBSync service', () => {
   });
 
   describe('replicateTo filter', () => {
-
     let filterFunction;
 
     before(() => {
@@ -272,5 +294,4 @@ describe('DBSync service', () => {
       expect(actual).to.equal(true);
     });
   });
-
 });
