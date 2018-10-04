@@ -93,7 +93,7 @@ angular
         });
     };
 
-    var syncMetaAtInterval = function() {
+    var syncMeta = function() {
       var remote = DB({ meta: true, remote: true });
       var local = DB({ meta: true });
       local.sync(remote);
