@@ -56,7 +56,7 @@ describe('DBSync service', () => {
           sync: sync,
         })
       );
-      $provide.value('$q', $q); // bypass $q so we don't have to digest
+      $provide.value('$q', $q);
       $provide.value('Session', {
         isOnlineOnly: isOnlineOnly,
         userCtx: userCtx,
