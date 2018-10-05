@@ -35,17 +35,6 @@ describe('DBSync service', () => {
     sync = sinon.stub();
     Auth = sinon.stub();
 
-    /*
-    Injecting the $q object requires the use of digest() throughout the tests which is gross
-    Using the defined Q object directly isn't a perfect match because of $q(x) is equivalent to Q.promise(x) while Q(x) is equivalent to $q.resolve(x)
-    */
-    $q = func => Q.promise(func);
-    $q.all = Q.all;
-    $q.resolve = Q.resolve;
-    $q.when = Q.when;
-    $q.defer = Q.defer;
-    $q.reject = Q.reject;
-
     module('inboxApp');
     module($provide => {
       $provide.factory(
@@ -56,7 +45,7 @@ describe('DBSync service', () => {
           sync: sync,
         })
       );
-      $provide.value('$q', $q);
+      $provide.value('$q', Q);
       $provide.value('Session', {
         isOnlineOnly: isOnlineOnly,
         userCtx: userCtx,
@@ -78,8 +67,7 @@ describe('DBSync service', () => {
       allDocs,
       userCtx,
       sync,
-      Auth,
-      $q
+      Auth
     );
   });
 
