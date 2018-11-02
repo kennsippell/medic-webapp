@@ -202,7 +202,7 @@ describe('login controller', () => {
         chai.expect(cookie.args[0][0]).to.equal('AuthSession');
         chai.expect(cookie.args[1][0]).to.equal('userCtx');
 
-        chai.expect(cookie.args[2][0]).to.equal('secondaryServer');
+        chai.expect(cookie.args[2][0]).to.equal('satelliteServer');
         chai.expect(cookie.args[2][1]).to.equal('http://secondary');
         chai.expect(cookie.args[2][2]).to.deep.equal({ sameSite: 'lax', secure: false, maxAge: 31536000000 });
       });

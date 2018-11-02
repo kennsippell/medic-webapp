@@ -142,9 +142,9 @@ const setSecondaryCookie = (res, cookie) => {
   if (cookie) {
     const options = getCookieOptions();
     options.maxAge = ONE_YEAR;
-    res.cookie('secondaryServer', cookie, options);
+    res.cookie('satelliteServer', cookie, options);
   } else {
-    res.clearCookie('secondaryServer')
+    res.clearCookie('satelliteServer')
   }
 };
 

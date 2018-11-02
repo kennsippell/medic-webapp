@@ -9,11 +9,11 @@ var DB_NAME_BLACKLIST = /[^a-z0-9_$()+/-]/g;
 
 angular.module('inboxServices').factory('DB',
   function(
-    $window,
     Location,
     pouchDB,
     POUCHDB_OPTIONS,
-    Session
+    Session,
+    SatelliteServer
   ) {
 
     'use strict';
@@ -27,16 +27,17 @@ angular.module('inboxServices').factory('DB',
       if (!remote) {
         return username;
       }
-      // escape username in case they user invalid characters
+      // escape username in case they use invalid characters
       return username.replace(DB_NAME_BLACKLIST, function(match) {
         return '(' + match.charCodeAt(0) + ')';
       });
     };
 
-    var getDbName = function(remote, meta) {
-      var parts = [];
+    var getDbName = function(remote, meta, satelliteServerAddress) {
+      const parts = [];
       if (remote) {
-        parts.push(Location.url);
+        const url = satelliteServerAddress ? `${satelliteServerAddress}/${Location.dbName}` : Location.url;
+        parts.push(url);
       } else {
         parts.push(Location.dbName);
       }
@@ -73,7 +74,9 @@ angular.module('inboxServices').factory('DB',
         remote: isOnlineOnly,
         meta: false
       });
-      var name = getDbName(options.remote, options.meta);
+      
+      const satelliteServerAddress = SatelliteServer.tryGet();
+      const name = getDbName(options.remote, options.meta, satelliteServerAddress);
       if (!cache[name]) {
         var db = pouchDB(name, getParams(options.remote, options.meta));
         cache[name] = db;
