@@ -85,6 +85,10 @@ if (process.argv.slice(2).includes('--allow-cors')) {
       req.headers.origin || req.headers.host
     );
     res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, *'
+    );
+    res.setHeader(
       'Access-Control-Allow-Methods',
       'GET, POST, PUT, OPTIONS, HEAD, DELETE'
     );
@@ -140,6 +144,32 @@ app.use(compression());
 
 // TODO: investigate blocking writes to _users from the outside. Reads maybe as well, though may be harder
 //       https://github.com/medic/medic-webapp/issues/4089
+
+// Custom headers are not permitted for OPTIONS requests, so we can't use the AuthSession header for validation
+app.options("/*", function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'accept, authorization, content-type, origin, referer, x-csrf-token, authsession');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.send(200);
+});
+
+// For cross-origin requests to the satellite, the user's AuthSession is pushed into an AuthSession header
+// because of the specific rules surrounding the Cookie header. Here we unpack AuthSession and move it into
+// Cookie before the proxy to Couch
+app.all('*', (req, res, next) => {
+  const authSession = req.headers['authsession'];
+  if (authSession) {
+    if (!req.headers.Cookie) {
+      req.headers.Cookie = '';
+    }
+
+    if (!req.headers.Cookie.includes('AuthSession')) {
+      req.headers.Cookie += `; AuthSession=${authSession};`;
+    }
+  }
+  next();
+});
 
 app.get('/', function(req, res) {
   if (req.headers.accept === 'application/json') {

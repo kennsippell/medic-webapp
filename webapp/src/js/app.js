@@ -90,18 +90,6 @@ _.templateSettings = {
     name: '@@APP_CONFIG.name',
     version: '@@APP_CONFIG.version',
   });
-  var POUCHDB_OPTIONS = {
-    local: { auto_compaction: true },
-    remote: {
-      skip_setup: true,
-      fetch: function(url, opts) {
-        opts.headers.set('Accept', 'application/json');
-        opts.credentials = 'same-origin';
-        return window.PouchDB.fetch(url, opts);
-      },
-    },
-  };
-  app.constant('POUCHDB_OPTIONS', POUCHDB_OPTIONS);
 
   if (window.location.href === 'http://localhost:9876/context.html') {
     // karma unit testing - do not bootstrap
