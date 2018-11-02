@@ -4,6 +4,7 @@ const controller = require('../../../src/controllers/login'),
       auth = require('../../../src/auth'),
       sinon = require('sinon'),
       config = require('../../../src/config'),
+      settings = require('../../../src/services/settings'),
       request = require('request'),
       fs = require('fs'),
       DB_NAME = 'lg',
@@ -181,6 +182,32 @@ describe('login controller', () => {
       });
     });
 
+    it('set secondary cookie', () => {
+      req.body = { user: 'sharon', password: 'p4ss' };
+
+      sinon.stub(request, 'post').callsArgWith(1, null, {
+        statusCode: 200,
+        headers: { 'set-cookie': [ 'AuthSession=abc;' ] }
+      });
+      sinon.stub(res, 'json').returns(res);
+      const cookie = sinon.stub(res, 'cookie').returns(res);
+      sinon.stub(auth, 'getUserCtx').resolves({ name: 'shazza', roles: [ 'project-stuff' ] });
+      
+      sinon.stub(settings, 'get').returns(Promise.resolve({
+        enable_secondary_server: true,
+        secondary_server_address: 'http://secondary',
+      }));
+
+      return controller.post(req, res).then(() => {
+        chai.expect(cookie.args[0][0]).to.equal('AuthSession');
+        chai.expect(cookie.args[1][0]).to.equal('userCtx');
+
+        chai.expect(cookie.args[2][0]).to.equal('secondaryServer');
+        chai.expect(cookie.args[2][1]).to.equal('http://secondary');
+        chai.expect(cookie.args[2][2]).to.deep.equal({ sameSite: 'lax', secure: false, maxAge: 31536000000 });
+      });
+    })
+
     it('logs in successfully', () => {
       req.body = { user: 'sharon', password: 'p4ss' };
       const postResponse = {
@@ -192,6 +219,8 @@ describe('login controller', () => {
       const cookie = sinon.stub(res, 'cookie').returns(res);
       const userCtx = { name: 'shazza', roles: [ 'project-stuff' ] };
       const getUserCtx = sinon.stub(auth, 'getUserCtx').resolves(userCtx);
+      sinon.stub(settings, 'get').returns(Promise.resolve({}));
+      res.clearCookie = sinon.stub();
       return controller.post(req, res).then(() => {
         chai.expect(post.callCount).to.equal(1);
         chai.expect(post.args[0][0].url).to.equal('http://test.com:1234/_session');
@@ -210,6 +239,7 @@ describe('login controller', () => {
         chai.expect(cookie.args[1][0]).to.equal('userCtx');
         chai.expect(cookie.args[1][1]).to.equal(JSON.stringify(userCtx));
         chai.expect(cookie.args[1][2]).to.deep.equal({ sameSite: 'lax', secure: false, maxAge: 31536000000 });
+        chai.expect(res.clearCookie.called).to.eq(true);
       });
     });
 

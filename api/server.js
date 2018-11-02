@@ -17,8 +17,11 @@ serverChecks.check(db.serverUrl).then(() => {
     apiPort = process.env.API_PORT || 5988;
 
   const skipStartup = !!process.env.API_SKIP_STARTUP;
-  const startupSteps = skipStartup ? Promise.resolve() : 
+  const startupSteps = skipStartup ? 
     Promise.resolve()
+      .then(() => logger.info('Skipping startup steps'))
+
+    : Promise.resolve()
       .then(() => logger.info('Extracting ddoc…'))
       .then(ddocExtraction.run)
       .then(() => logger.info('DDoc extraction completed successfully'))
