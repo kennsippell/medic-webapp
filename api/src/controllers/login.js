@@ -134,7 +134,10 @@ const getCookieOptions = () => {
 const setSessionCookie = (res, cookie) => {
   const sessionId = SESSION_COOKIE_RE.exec(cookie)[1];
   const options = getCookieOptions();
-  options.httpOnly = true; // don't allow javascript access to stop xss
+  
+  // don't allow javascript access to stop xss
+  // This is a terrible scary change. Potential blocker
+  // options.httpOnly = true;
   res.cookie('AuthSession', sessionId, options);
 };
 

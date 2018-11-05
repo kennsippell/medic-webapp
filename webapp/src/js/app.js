@@ -123,7 +123,7 @@ _.templateSettings = {
     });
   });
 
-  bootstrapper(POUCHDB_OPTIONS, function(err) {
+  bootstrapper(function(err) {
     if (err) {
       if (err.redirect) {
         window.location.href = err.redirect;

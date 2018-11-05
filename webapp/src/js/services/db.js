@@ -57,9 +57,9 @@ angular.module('inboxServices').factory('DB',
         if (meta) {
           params.skip_setup = false;
         }
-        _.defaults(params, POUCHDB_OPTIONS.remote);
+        _.defaults(params, POUCHDB_OPTIONS().remote);
       } else {
-        _.defaults(params, POUCHDB_OPTIONS.local);
+        _.defaults(params, POUCHDB_OPTIONS().local);
       }
       return params;
     };

@@ -12,9 +12,11 @@ angular.module('inboxServices').factory('POUCHDB_OPTIONS', function (ipCookie, S
 
         if (SatelliteServer.isEnabled()) {
           opts.headers.set('AuthSession', ipCookie('AuthSession'));
+          opts.withCredentials = true;
+        } else {
+          opts.credentials = 'same-origin';
         }
         
-        opts.withCredentials = true;
         return window.PouchDB.fetch(url, opts);
       },
     },

@@ -122,7 +122,7 @@
     return localDb.get('_design/medic-client');
   };
 
-  module.exports = function(POUCHDB_OPTIONS, callback) {
+  module.exports = function(callback) {
     var dbInfo = getDbInfo();
     var userCtx = getUserCtx();
     if (!userCtx) {
@@ -139,6 +139,19 @@
     
     var username = userCtx.name;
     var localDbName = getLocalDbName(dbInfo, username);
+
+    /* I'm unsure of where to stash this shared code */
+    const POUCHDB_OPTIONS = {
+      local: { auto_compaction: true },
+      remote: {
+        skip_setup: true,
+        fetch: function(url, opts) {
+          opts.headers.set('Accept', 'application/json');
+          opts.credentials = 'same-origin';
+          return window.PouchDB.fetch(url, opts);
+        },
+      },
+    };
     var localDb = window.PouchDB(localDbName, POUCHDB_OPTIONS.local);
 
     getDdoc(localDb)
