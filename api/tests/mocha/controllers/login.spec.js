@@ -182,7 +182,7 @@ describe('login controller', () => {
       });
     });
 
-    it('set secondary cookie', () => {
+    it('set satellite cookie', () => {
       req.body = { user: 'sharon', password: 'p4ss' };
 
       sinon.stub(request, 'post').callsArgWith(1, null, {
@@ -194,8 +194,8 @@ describe('login controller', () => {
       sinon.stub(auth, 'getUserCtx').resolves({ name: 'shazza', roles: [ 'project-stuff' ] });
       
       sinon.stub(settings, 'get').returns(Promise.resolve({
-        enable_secondary_server: true,
-        secondary_server_address: 'http://secondary',
+        enable_satellite_server: true,
+        satellite_server_address: 'http://satellite',
       }));
 
       return controller.post(req, res).then(() => {
@@ -203,7 +203,7 @@ describe('login controller', () => {
         chai.expect(cookie.args[1][0]).to.equal('userCtx');
 
         chai.expect(cookie.args[2][0]).to.equal('satelliteServer');
-        chai.expect(cookie.args[2][1]).to.equal('http://secondary');
+        chai.expect(cookie.args[2][1]).to.equal('http://satellite');
         chai.expect(cookie.args[2][2]).to.deep.equal({ sameSite: 'lax', secure: false, maxAge: 31536000000 });
       });
     })

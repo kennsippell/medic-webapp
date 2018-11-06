@@ -141,7 +141,7 @@ const setSessionCookie = (res, cookie) => {
   res.cookie('AuthSession', sessionId, options);
 };
 
-const setSecondaryCookie = (res, cookie) => {
+const setSatelliteCookie = (res, cookie) => {
   if (cookie) {
     const options = getCookieOptions();
     options.maxAge = ONE_YEAR;
@@ -172,8 +172,8 @@ const setCookies = (req, res, sessionRes) => {
       return settings.get();
     })
     .then(settingsDoc => {
-      const secondaryCookie = settingsDoc.enable_secondary_server && settingsDoc.secondary_server_address;
-      setSecondaryCookie(res, secondaryCookie);
+      const satelliteCookie = settingsDoc.enable_satellite_server && settingsDoc.satellite_server_address;
+      setSatelliteCookie(res, satelliteCookie);
       res.json({ success: true })
     })
     .catch(err => {

@@ -2,12 +2,12 @@ angular.module('inboxServices').factory('SatelliteServer', function (ipCookie) {
   'use strict';
   'ngInject';
 
-  let secondaryAvailable = false;
-  const satelliteServer = ipCookie('satelliteServer');
+  let isAvailable = false;
+  const serverUrl = ipCookie('satelliteServer');
   
   return {
-    isEnabled: () => secondaryAvailable && !!satelliteServer, 
-    tryGet: () => secondaryAvailable && satelliteServer,
-    setAvailability: (available) => secondaryAvailable = !!available,
+    isEnabled: () => isAvailable && !!serverUrl, 
+    tryGet: () => isAvailable && serverUrl,
+    setAvailability: (available) => isAvailable = !!available,
   };
 });
