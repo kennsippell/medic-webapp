@@ -146,7 +146,7 @@ var _ = require('underscore'),
           $scope.moreItems = liveList.moreItems =
             contacts.length >= options.limit;
 
-          contacts.forEach(liveList.update);
+          contacts.forEach(contact => liveList.update(contact, true));
           liveList.refresh();
           _initScroll();
           $scope.loading = false;

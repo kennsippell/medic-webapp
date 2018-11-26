@@ -381,7 +381,7 @@ angular.module('inboxServices').factory('LiveList',
       return false;
     }
 
-    function _insert(listName, newItem, skipDomAppend, removedDomElement) {
+    function _insert(listName, newItem, skipDomAppend, removedDomElement, modelOnly) {
       var idx = indexes[listName];
 
       if (!idx.list) {
@@ -399,7 +399,7 @@ angular.module('inboxServices').factory('LiveList',
       }
 
       var activeDom = $(idx.selector);
-      if(activeDom.length) {
+      if(!modelOnly && activeDom.length) {
         var children = activeDom.children();
         if (!children.length || newItemIndex === children.length) {
           activeDom.append(li);
@@ -410,12 +410,12 @@ angular.module('inboxServices').factory('LiveList',
       }
     }
 
-    function _update(listName, updatedItem) {
-      var removed = _remove(listName, updatedItem);
-      _insert(listName, updatedItem, false, removed);
+    function _update(listName, updatedItem, modelOnly) {
+      var removed = _remove(listName, updatedItem, modelOnly);
+      _insert(listName, updatedItem, false, removed, modelOnly);
     }
 
-    function _remove(listName, removedItem) {
+    function _remove(listName, removedItem, modelOnly) {
       var idx = indexes[listName];
 
       if (!idx.list) {
@@ -429,7 +429,7 @@ angular.module('inboxServices').factory('LiveList',
           removeIndex = i;
         }
       }
-      if (removeIndex !== null) {
+      if (!modelOnly && removeIndex !== null) {
         idx.list.splice(removeIndex, 1);
         var removed = idx.dom.splice(removeIndex, 1);
 
