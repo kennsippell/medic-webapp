@@ -16,30 +16,40 @@ serverChecks.check(environment.serverUrl).then(() => {
     serverUtils = require('./src/server-utils'),
     apiPort = process.env.API_PORT || 5988;
 
-  Promise.resolve()
-    .then(() => logger.info('Extracting ddoc…'))
-    .then(ddocExtraction.run)
-    .then(() => logger.info('DDoc extraction completed successfully'))
+  const skipStartup = !!process.env.API_SKIP_STARTUP;
+  let startupSteps = Promise.resolve();
 
+  if (!skipStartup) {
+    startupSteps = startupSteps
+      .then(() => logger.info('Extracting ddoc…'))
+      .then(ddocExtraction.run)
+      .then(() => logger.info('DDoc extraction completed successfully'));
+  }
+
+  startupSteps = startupSteps
     .then(() => logger.info('Loading configuration…'))
     .then(config.load)
     .then(() => logger.info('Configuration loaded successfully'))
-    .then(config.listen)
+    .then(config.listen);
+  
+  if (!skipStartup) {
+    startupSteps
+      .then(() => logger.info('Merging translations…'))
+      .then(translations.run)
+      .then(() => logger.info('Translations merged successfully'))
 
-    .then(() => logger.info('Merging translations…'))
-    .then(translations.run)
-    .then(() => logger.info('Translations merged successfully'))
+      .then(() => logger.info('Running db migrations…'))
+      .then(migrations.run)
+      .then(() => logger.info('Database migrations completed successfully'));
+  }
 
-    .then(() => logger.info('Running db migrations…'))
-    .then(migrations.run)
-    .then(() => logger.info('Database migrations completed successfully'))
-
+  startupSteps
     .catch(err => {
       logger.error('Fatal error initialising medic-api');
       logger.error('%o',err);
       process.exit(1);
     })
-
+    
     .then(() => {
       // Define error-handling middleware last.
       // http://expressjs.com/guide/error-handling.html
