@@ -6,6 +6,8 @@ const fs = require('fs'),
   _ = require('underscore'),
   auth = require('../auth'),
   environment = require('../environment'),
+  db = require('../db-nano'),
+  settings = require('../services/settings'),
   config = require('../config'),
   SESSION_COOKIE_RE = /AuthSession\=([^;]*);/,
   ONE_YEAR = 31536000000,
@@ -119,6 +121,16 @@ const setSessionCookie = (res, cookie) => {
   res.cookie('AuthSession', sessionId, options);
 };
 
+const setSatelliteCookie = (res, cookie) => {
+  if (cookie) {
+    const options = getCookieOptions();
+    options.maxAge = ONE_YEAR;
+    res.cookie('satelliteServer', cookie, options);
+  } else {
+    res.clearCookie('satelliteServer')
+  }
+};
+
 const setUserCtxCookie = (res, userCtx) => {
   const options = getCookieOptions();
   options.maxAge = ONE_YEAR;
@@ -137,7 +149,12 @@ const setCookies = (req, res, sessionRes) => {
     .then(userCtx => {
       setSessionCookie(res, sessionCookie);
       setUserCtxCookie(res, userCtx);
-      res.json({ success: true });
+      return settings.get();
+    })
+    .then(settingsDoc => {
+      const satelliteCookie = settingsDoc.enable_satellite_server && settingsDoc.satellite_server_address;
+      setSatelliteCookie(res, satelliteCookie);
+      res.json({ success: true })
     })
     .catch(err => {
       logger.error(`Error getting authCtx ${err}`);
