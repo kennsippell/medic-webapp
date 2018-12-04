@@ -93,7 +93,9 @@ require('../../../webapp/src/js/services/languages');
 require('../../../webapp/src/js/services/lineage-model-generator');
 require('../../../webapp/src/js/services/location');
 require('../../../webapp/src/js/services/modal');
+require('../../../webapp/src/js/services/pouchdb-options');
 require('../../../webapp/src/js/services/resource-icons');
+require('../../../webapp/src/js/services/satellite-server');
 require('../../../webapp/src/js/services/search');
 require('../../../webapp/src/js/services/select2-search');
 require('../../../webapp/src/js/services/settings');
@@ -121,18 +123,6 @@ var app = angular.module('adminApp', [
   'ui.bootstrap',
   'ui.router',
 ]);
-
-app.constant('POUCHDB_OPTIONS', {
-  local: { auto_compaction: true },
-  remote: {
-    skip_setup: true,
-    fetch: function(url, opts) {
-      opts.headers.set('Accept', 'application/json');
-      opts.credentials = 'same-origin';
-      return window.PouchDB.fetch(url, opts);
-    }
-  }
-});
 
 app.config(function(
   $compileProvider,

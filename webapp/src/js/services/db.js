@@ -8,11 +8,11 @@ const META_DB_SUFFIX = 'meta';
 angular.module('inboxServices').factory('DB',
   function(
     $timeout,
-    $window,
     Location,
     pouchDB,
     POUCHDB_OPTIONS,
-    Session
+    Session,
+    SatelliteServer
   ) {
 
     'use strict';
@@ -30,10 +30,11 @@ angular.module('inboxServices').factory('DB',
       return username.replace(DISALLOWED_CHARS, match => `(${match.charCodeAt(0)})`);
     };
 
-    const getDbName = (remote, meta) => {
+    const getDbName = function(remote, meta, satelliteServerAddress) {
       const parts = [];
       if (remote) {
-        parts.push(Location.url);
+        const url = satelliteServerAddress ? `${satelliteServerAddress}/${Location.dbName}` : Location.url;
+        parts.push(url);
       } else {
         parts.push(Location.dbName);
       }
@@ -48,7 +49,8 @@ angular.module('inboxServices').factory('DB',
     };
 
     const getParams = (remote, meta) => {
-      const clone = Object.assign({}, remote ? POUCHDB_OPTIONS.remote : POUCHDB_OPTIONS.local);
+      const options = POUCHDB_OPTIONS();
+      const clone = Object.assign({}, remote ? options.remote : options.local);
       if (remote && meta) {
         clone.skip_setup = false;
       }
@@ -59,7 +61,9 @@ angular.module('inboxServices').factory('DB',
       if (!Session.userCtx()) {
         return Session.navigateToLogin();
       }
-      const name = getDbName(remote, meta);
+      
+      const satelliteServerAddress = SatelliteServer.tryGet();
+      const name = getDbName(remote, meta, satelliteServerAddress);
       if (!cache[name]) {
         cache[name] = pouchDB(name, getParams(remote, meta));
       }

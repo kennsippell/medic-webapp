@@ -62,6 +62,8 @@
   require('./moment-locale-data');
   require('./mrdt');
   require('./place-hierarchy');
+  require('./pouchdb-options');
+  require('./satellite-server');
   require('./recurring-process-manager');
   require('./relative-date');
   require('./report-view-model-generator');

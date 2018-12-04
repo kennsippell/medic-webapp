@@ -52,7 +52,8 @@ var feedback = require('../modules/feedback'),
     XmlForms,
     RecurringProcessManager,
     DatabaseConnectionMonitor,
-    BrandingImages
+    BrandingImages,
+    SatelliteServer
   ) {
     'ngInject';
 
@@ -518,6 +519,15 @@ var feedback = require('../modules/feedback'),
         },
       },
     ];
+
+    $scope.satelliteServer = {
+      click: function () {
+        const nowAvailable = !$scope.satelliteServer.available;
+        $scope.satelliteServer.available = nowAvailable;
+        SatelliteServer.setAvailability(nowAvailable);
+      },
+      available: !!SatelliteServer.tryGet(),
+    };
 
     $q.all([Settings(), UserSettings()])
       .then(function(results) {
