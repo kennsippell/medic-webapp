@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="center">
-      <form id="form" action="{{ action }}" method="POST">
+      <form id="form" action="{{ action }}" secondaryAction="{{ secondaryAction }}" method="POST">
         <img class="logo" src="{{ branding.logo }}" title="{{ branding.name }}">
         <input id="redirect" type="hidden" name="redirect" value="{{ redirect }}">
         <label for="user">{{ translations.username }}</label>

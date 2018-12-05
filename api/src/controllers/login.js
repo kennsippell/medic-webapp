@@ -6,7 +6,6 @@ const fs = require('fs'),
   _ = require('underscore'),
   auth = require('../auth'),
   environment = require('../environment'),
-  db = require('../db-nano'),
   settings = require('../services/settings'),
   config = require('../config'),
   SESSION_COOKIE_RE = /AuthSession\=([^;]*);/,
@@ -58,19 +57,25 @@ const getLoginTemplate = () => {
 
 const renderLogin = (redirect, branding) => {
   return getLoginTemplate().then(template => {
-    return template({
-      action: path.join('/', environment.db, 'login'),
-      redirect: redirect,
-      branding: branding,
-      translations: {
-        login: config.translate('login'),
-        loginerror: config.translate('login.error'),
-        loginincorrect: config.translate('login.incorrect'),
-        loginoffline: config.translate('online.action.message'),
-        username: config.translate('User Name'),
-        password: config.translate('Password'),
-      },
-    });
+    return settings.get()
+      .then(settingsDoc => {
+        const action = path.join('/', environment.db, 'login');
+        const secondaryAction = settingsDoc.enable_satellite_server ? url.resolve(settingsDoc.satellite_server_address, action) : '';
+        return template({
+          action,
+          secondaryAction,
+          redirect,
+          branding,
+          translations: {
+            login: config.translate('login'),
+            loginerror: config.translate('login.error'),
+            loginincorrect: config.translate('login.incorrect'),
+            loginoffline: config.translate('online.action.message'),
+            username: config.translate('User Name'),
+            password: config.translate('Password'),
+          },
+        });
+      });
   });
 };
 
@@ -108,9 +113,10 @@ const createSession = req => {
 };
 
 const getCookieOptions = () => {
+  const allowCors = process.argv.slice(2).includes('--allow-cors');
   return {
-    sameSite: 'lax', // prevents the browser from sending this cookie along with some cross-site requests
-    secure: production, // only transmit when requesting via https unless in development mode
+    sameSite: allowCors ? undefined : 'lax',
+    secure: production, // only transmit when requesting via https unless in development mode,
   };
 };
 
@@ -127,7 +133,7 @@ const setSatelliteCookie = (res, cookie) => {
     options.maxAge = ONE_YEAR;
     res.cookie('satelliteServer', cookie, options);
   } else {
-    res.clearCookie('satelliteServer')
+    res.clearCookie('satelliteServer');
   }
 };
 
@@ -149,12 +155,24 @@ const setCookies = (req, res, sessionRes) => {
     .then(userCtx => {
       setSessionCookie(res, sessionCookie);
       setUserCtxCookie(res, userCtx);
-      return settings.get();
-    })
-    .then(settingsDoc => {
-      const satelliteCookie = settingsDoc.enable_satellite_server && settingsDoc.satellite_server_address;
-      setSatelliteCookie(res, satelliteCookie);
-      res.json({ success: true })
+      
+      if (req.query.secondaryActionSuccess === 'true') {
+        settings.get()
+          .then(settingsDoc => {
+            const satelliteCookieValue = settingsDoc.enable_satellite_server &&
+              settingsDoc.satellite_server_address.endsWith('.local') &&
+              settingsDoc.satellite_server_address.startsWith('https://');
+            setSatelliteCookie(res, satelliteCookieValue);
+            res.json({ success: true });
+          })
+          .catch(err => {
+            logger.error(`Error getting settings ${err}`);
+            res.status(500).json({ error: 'Error getting settings' });
+          });
+      } else {
+        setSatelliteCookie(res);
+        res.json({ success: true });
+      }
     })
     .catch(err => {
       logger.error(`Error getting authCtx ${err}`);

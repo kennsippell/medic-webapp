@@ -12,7 +12,7 @@ var unescape = function(s) {
     .replace(/&#x60;/g, '`');
 };
 
-var post = function(url, payload, callback) {
+var post = function(url, payload, withCredentials, callback) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState === XMLHttpRequest.DONE) {
@@ -20,6 +20,9 @@ var post = function(url, payload, callback) {
     }
   };
   xmlhttp.open('POST', url, true);
+  if (withCredentials) {
+    xmlhttp.withCredentials = true;
+  }
   xmlhttp.setRequestHeader('Content-Type', 'application/json');
   xmlhttp.send(payload);
 };
@@ -44,12 +47,27 @@ var submit = function(e) {
     return;
   }
   setState('loading');
-  var url = document.getElementById('form').action;
-  var payload = JSON.stringify({
+  const $form = document.getElementById('form');
+  const payload = JSON.stringify({
     user: document.getElementById('user').value.toLowerCase().trim(),
     password: document.getElementById('password').value
   });
-  post(url, payload, handleResponse);
+
+  const secondaryAction = $form.getAttribute('secondaryAction');
+  const secondaryActionUrl = secondaryAction && new URL(secondaryAction);
+  const useSecondaryAction = secondaryActionUrl &&
+    window.isSecureContext &&
+    secondaryActionUrl.protocol === 'https' &&
+    secondaryActionUrl.hostname.endsWith('.local');
+  if (useSecondaryAction) {
+    post(secondaryAction, payload, true, function(xmlhttp) {
+      const loginUrl = new URL($form.action);
+      loginUrl.searchParams.set('secondaryActionSuccess', xmlhttp.status === 200);
+      post(loginUrl.toString(), payload, false, handleResponse);
+    });
+  } else {
+    post($form.action, payload, false, handleResponse);
+  }
 };
 
 var focusOnPassword = function(e) {

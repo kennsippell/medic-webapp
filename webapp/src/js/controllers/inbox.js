@@ -526,6 +526,7 @@ var feedback = require('../modules/feedback'),
         $scope.satelliteServer.available = nowAvailable;
         SatelliteServer.setAvailability(nowAvailable);
       },
+      enabled: SatelliteServer.isEnabled(),
       available: !!SatelliteServer.tryGet(),
     };
 

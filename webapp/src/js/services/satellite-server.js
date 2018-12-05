@@ -6,7 +6,7 @@ angular.module('inboxServices').factory('SatelliteServer', function (ipCookie) {
   const serverUrl = ipCookie('satelliteServer');
   
   return {
-    isEnabled: () => isAvailable && !!serverUrl, 
+    isEnabled: () => !!serverUrl, 
     tryGet: () => isAvailable && serverUrl,
     setAvailability: (available) => isAvailable = !!available,
   };

@@ -79,15 +79,21 @@ app.set('strict routing', true);
 // --allow-cors commandline switch will enable this from within a web browser.
 if (process.argv.slice(2).includes('--allow-cors')) {
   logger.warn('WARNING: allowing CORS requests to API!');
+  
+  app.options("/*", function(req, res) {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || req.headers.host);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'content-type');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+    res.send(200);
+  });
+  
   app.use((req, res, next) => {
-    res.setHeader(
-      'Access-Control-Allow-Origin',
-      req.headers.origin || req.headers.host
-    );
-    res.setHeader(
-      'Access-Control-Allow-Methods',
-      'GET, POST, PUT, OPTIONS, HEAD, DELETE'
-    );
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS, HEAD, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'content-type');
+    res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     next();
   });

@@ -110,7 +110,7 @@
     </div>
 
     <div class="tabs small-font">
-      <button type="button" ng-click="satelliteServer.click()" ng-class="{ 'btn-success': !satelliteServer.available, 'btn-danger': satelliteServer.available }" class="btn btn-primary" alt="Click to change">{{satelliteServer.available ? 'Connected to Satellite' : 'Satellite Not Available'}}</button>
+      <button type="button" ng-show="satelliteServer.enabled" ng-click="satelliteServer.click()" ng-class="{ 'btn-success': !satelliteServer.available, 'btn-danger': satelliteServer.available }" class="btn btn-primary" alt="Click to change">{{satelliteServer.available ? 'Connected to Satellite' : 'Satellite Not Available'}}</button>
       
       <a ui-sref="messages.detail" id="messages-tab" class="messages-tab" ng-class="{'selected': currentTab === 'messages'}" mm-auth="can_view_messages,can_view_messages_tab">
         <div class="mm-icon" ng-class="{'mm-icon-inverse': currentTab !== 'messages'}">

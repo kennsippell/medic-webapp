@@ -239,7 +239,7 @@ describe('login controller', () => {
         chai.expect(cookie.args[2][1]).to.equal('http://satellite');
         chai.expect(cookie.args[2][2]).to.deep.equal({ sameSite: 'lax', secure: false, maxAge: 31536000000 });
       });
-    })
+    });
 
     it('logs in successfully', () => {
       req.body = { user: 'sharon', password: 'p4ss' };
