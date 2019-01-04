@@ -2,9 +2,10 @@
 
   'use strict';
 
-  var ONLINE_ROLE = 'mm-online';
+  const ONLINE_ROLE = 'mm-online';
 
-  var translator = require('./translator');
+  const translator = require('./translator');
+  const registerServiceWorker = require('./swRegister');
 
   var purger = require('./purger');
 
@@ -139,56 +140,64 @@
 
     translator.setLocale(userCtx.locale);
 
-    var username = userCtx.name;
-    var localDbName = getLocalDbName(dbInfo, username);
+    /* Question to Reviewer: Want to add new UI state like Downloading App... ? */
+    const onServiceWorkerInstalling = () => setUiStatus('LOAD_APP');
+    const swRegistration = registerServiceWorker(onServiceWorkerInstalling);
 
-    var localDb = window.PouchDB(localDbName, POUCHDB_OPTIONS.local);
-    var remoteDb = window.PouchDB(dbInfo.remote, POUCHDB_OPTIONS.remote);
+    const localDbName = getLocalDbName(dbInfo, userCtx.name);
+    const localDb = window.PouchDB(localDbName, POUCHDB_OPTIONS.local);
+    const testForReplicatedData = getDdoc(localDb)
+      .then(() => true)
+      .catch(() => false);
 
     let initialReplicationNeeded;
+    Promise.all([swRegistration, testForReplicatedData])
+      .then(function(resolved) {
+        const replicatedDataExists = !!resolved[1];
+        if (replicatedDataExists) {
+          // ddoc found - bootstrap immediately
+          localDb.close();
+          return callback();
+        }
 
-    getDdoc(localDb)
-      .then(function() {
-        // ddoc found - no need for initial replication
-      })
-      .catch(function() {
         // no ddoc found - do replication
+        var remoteDb = window.PouchDB(dbInfo.remote, POUCHDB_OPTIONS.remote);
         initialReplicationNeeded = true;
-        return initialReplication(localDb, remoteDb)
+        initialReplication(localDb, remoteDb)
           .then(function() {
             return getDdoc(localDb).catch(function() {
               throw new Error('Initial replication failed');
             });
+          })
+          .then(() => {
+            return purger(localDb, initialReplicationNeeded)
+              .on('start', () => setUiStatus('PURGE_INIT'))
+              .on('progress', function(progress) {
+                setUiStatus('PURGE_INFO', progress);
+              })
+              .on('optimise', () => setUiStatus('PURGE_AFTER'))
+              .catch(console.error);
+          })
+          // replication complete
+          .then(() => setUiStatus('STARTING_APP'))
+          .catch(err => err)
+          .then(function(err) {
+            localDb.close();
+            remoteDb.close();
+            if (err) {
+              if (err.status === 401) {
+                return redirectToLogin(dbInfo, err, callback);
+              }
+
+              setUiError();
+            }
+
+            callback(err);
           });
       })
-      .then(() => {
-        return purger(localDb, initialReplicationNeeded)
-          .on('start', () => setUiStatus('PURGE_INIT'))
-          .on('progress', function(progress) {
-            setUiStatus('PURGE_INFO', progress);
-          })
-          .on('optimise', () => setUiStatus('PURGE_AFTER'))
-          .catch(console.error);
-      }).then(function() {
-        // replication complete
-        setUiStatus('STARTING_APP');
-      })
-      .catch(function(err) {
-        return err;
-      })
-      .then(function(err) {
-        localDb.close();
-        remoteDb.close();
-        if (err) {
-          if (err.status === 401) {
-            return redirectToLogin(dbInfo, err, callback);
-          }
-
-          setUiError();
-        }
-
+      .catch(err => {
+        setUiError();
         callback(err);
       });
-
   };
 }());
