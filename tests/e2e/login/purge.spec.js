@@ -6,7 +6,7 @@ const auth = require('../../auth')(),
 
 describe('Purging on login', () => {
 
-  const restrictedUserName = 'e2e_restricted',
+  const restrictedUserName = 'e2e_restricted' + new Date().getTime(),
         restrictedPass = 'e2e_restricted',
         restrictedFacilityId = 'restriced-facility',
         restrictedContactId = 'restricted-contact',
