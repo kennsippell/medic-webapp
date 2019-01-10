@@ -167,7 +167,7 @@ describe('Purging on login', () => {
   beforeEach(utils.beforeEach);
   afterEach(utils.afterEach);
 
-  it('Logging in as a restricted user with configured purge rules should perform a purge', () => {
+  xit('Logging in as a restricted user with configured purge rules should perform a purge', () => {
     utils.resetBrowser();
     commonElements.goToLoginPage();
     loginPage.login(restrictedUserName, restrictedPass);
